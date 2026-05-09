@@ -2,9 +2,8 @@
 
 <!DOCTYPE html>
 <html lang="pt-br">
-<head><base href="/template-assets/crlv/">
     <meta charset="UTF-8">
-    <title>CRLV Digital - Editor Profissional</title>
+    <title>CRLV Digital - Mama fudido </title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
     <style>
         @font-face {
@@ -219,7 +218,20 @@
             letter-spacing: 0;
             white-space: nowrap;
             pointer-events: none;
-         }
+        }
+        .edit-preview-watermark {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(210, 0, 0, 0.28);
+            font: 900 96px Arial, Helvetica, sans-serif;
+            letter-spacing: 8px;
+            transform: rotate(-32deg);
+            pointer-events: none;
+        }
         .qr-preview-mark {
             position: absolute;
             z-index: 31;
@@ -509,7 +521,7 @@
     <div class="preview-area">
         <div class="document-container" id="printable">
             <img src="clean-bg.png?v=20260504-3" class="pdf-bg">
-            <div class="edit-preview-watermark">PRÉVIA</div>
+            <img src="qr-clean.png?v=20260506-1" class="qr-clean-image" style="top: 120px; left: 218px; width: 150px; height: 150px;">
             <div class="qr-preview-mark" style="top: 195px; left: 293px;">PRÉVIA</div>
             <div id="pv-detran_topo" class="overlay-text" style="top: 72.00px; left: 28.00px; width: 140px; height: 10px; background:#fff !important; color:#000; -webkit-text-fill-color:#000; font-family: Arial, Helvetica, sans-serif; font-weight: 400; font-size: 6px; line-height:10px; transform:none; z-index:20;">DETRAN - AM</div>
             <div id="pv-renavam" class="overlay-text" style="top: 134.58px; left: 41.41px; width: 90px; height: 14px; color:#000; -webkit-text-fill-color:#000; transform:translateY(0);">00936933747</div>
