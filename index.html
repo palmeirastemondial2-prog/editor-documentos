@@ -313,7 +313,7 @@
             .dashboard-summary, .section-tabs, .field-grid { grid-template-columns: 1fr; }
         }
     </style>
-</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> </head>
 <body>
     <div class="sidebar no-print">
         <div class="sidebar-header">
@@ -850,21 +850,33 @@
 <script>
 async function systemGenerate(kind) {
   const status = document.getElementById('system-status');
-  const doc = document.querySelector('.document-container');
-  if (!doc) { alert('Documento nao encontrado.'); return; }
-  status.textContent = 'Gerando...';
-  try {
-    const response = await fetch('/documents/crlv/' + kind, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CSRF-Token': 'e0973735efd0dad72b763e3024cd163a58a877cbcd25da418baa43aeef875d48' },
-      body: JSON.stringify({ documentHtml: doc.outerHTML })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      status.textContent = '';
-      alert(data.error || 'Falha ao gerar PDF.');
-      return;
-    }
+  const doc = document.getElementById('printable'); // Seleciona a área do documento
+  
+  if (!doc) return;
+  status.textContent = 'Gerando PDF...';
+
+  const options = {
+    margin: 0,
+    filename: 'CRLV_Digital.pdf',
+    image: { type: 'jpeg', quality: 1.0 },
+    html2canvas: { 
+      scale: 3, 
+      useCORS: true,
+      letterRendering: true
+    },
+    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+  };
+
+  // Gera e baixa o arquivo automaticamente
+  html2pdf().set(options).from(doc).save().then(() => {
+    status.textContent = 'Download concluído!';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  }).catch(err => {
+    console.error(err);
+    alert('Erro ao processar o PDF no navegador.');
+    status.textContent = '';
+  });
+}
     if (!data.downloadUrl) {
       status.textContent = '';
       alert('PDF gerado, mas o link de download nao foi retornado.');
