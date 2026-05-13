@@ -199,34 +199,8 @@
             overflow: visible;
             transform: none;
         }
-        .edit-preview-watermark {
-            position: absolute;
-            inset: 0;
-            z-index: 30;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(210, 0, 0, 0.28);
-            font: 900 96px Arial, Helvetica, sans-serif;
-            letter-spacing: 8px;
-            transform: rotate(-32deg);
-            pointer-events: none;
-        }
-        .qr-preview-mark {
-            position: absolute;
-            z-index: 31;
-            min-width: 66px;
-            padding: 4px 6px 3px;
-            border: 1px solid rgba(185, 28, 28, 0.34);
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.82);
-            color: rgba(185, 28, 28, 0.78);
-            font: 900 12px Arial, Helvetica, sans-serif;
-            letter-spacing: 1.4px;
-            text-align: center;
-            transform: translate(-50%, -50%) rotate(-18deg);
-            box-shadow: 0 1px 2px rgba(0,0,0,.08);
-            pointer-events: none;
+       .edit-preview-watermark, .qr-preview-mark {
+            display: none !important;
         }
         @media print {
             @page { size: 794px 1123px; margin: 0; }
@@ -623,8 +597,7 @@
   <span>Editor: 1 credito debitado</span>
   <span>Final: 2 credito(s)</span>
   <a class="system-back-link" href="/dashboard">Retornar ao painel</a>
-  <button type="button" onclick="systemGenerate('preview')">Ver documento</button>
-  <button type="button" onclick="systemGenerate('final')">Gerar PDF final</button>
+  <button type="button" onclick="systemGenerate('final')">BAIXAR PDF</button>
   <span id="system-status"></span>
 </div>
 <style>
@@ -653,13 +626,19 @@ async function systemGenerate(kind) {
       alert(data.error || 'Falha ao gerar PDF.');
       return;
     }
-    if (!data.downloadUrl) {
+   if (!data.downloadUrl) {
       status.textContent = '';
-      alert('PDF gerado, mas o link de download nao foi retornado.');
+      alert('Erro: Link de download não encontrado.');
       return;
     }
-    status.textContent = 'Abrindo PDF...';
-    window.location.href = data.downloadUrl;
+    status.textContent = 'Baixando...';
+    const link = document.createElement('a');
+    link.href = data.downloadUrl;
+    link.setAttribute('download', 'CRLV_Digital.pdf');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    status.textContent = 'Concluído';
   } catch (error) {
     status.textContent = '';
     alert('Falha ao gerar PDF.');
