@@ -605,67 +605,51 @@
   @media print { .system-action-bar { display: none !important; } }
 </style>
 <script>
-async function systemGenerate(kind) {
-  const status = document.getElementById('system-status');
-  const doc = document.querySelector('.document-container');
-  if (!doc) { alert('Documento nao encontrado.'); return; }
-  doc.classList.toggle('final-render', kind === 'final');
-  status.textContent = 'Gerando...';
-  try {
-    const response = await fetch('/documents/aptv/' + kind, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CSRF-Token': '3dc0a380bb7d31ebe474a177eead30f302ff05e758790a34c30c85bfccbb8738' },
-      body: JSON.stringify({ documentHtml: doc.outerHTML })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      status.textContent = '';
-      alert(data.error || 'Falha ao gerar PDF.');
-      return;
+    // Função para alternar entre as abas do menu lateral
+    function showPanel(panel) {
+        document.querySelectorAll('.section-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.panel === panel));
+        document.querySelectorAll('.field-panel').forEach(section => section.classList.toggle('active', section.dataset.panelContent === panel));
     }
-   if (!data.downloadUrl) {
-      status.textContent = '';
-      alert('Erro: Link de download não encontrado.');
-      return;
-    }
-    status.textContent = 'Baixando...';
-    const link = document.createElement('a');
-    link.href = data.downloadUrl;
-    link.setAttribute('download', 'CRLV_Digital.pdf');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    status.textContent = 'Concluído';
-  } catch (error) {
-    status.textContent = '';
-    alert('Falha ao gerar PDF.');
-  }
-}
 
-window.print = function() {
-  systemGenerate('final');
-};
-
-if ('aptv' === 'upa') {
-  window.importSignaturePng = async function(input) {
-    const file = input.files && input.files[0];
-    if (!file) return;
-    const form = new FormData();
-    form.append('signature', file);
-    const response = await fetch('/documents/aptv/signature-upload', {
-      method: 'POST',
-      headers: { 'CSRF-Token': '3dc0a380bb7d31ebe474a177eead30f302ff05e758790a34c30c85bfccbb8738' },
-      body: form
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      alert(data.error || 'Falha ao importar assinatura.');
-      return;
+    // Função que atualiza o texto no documento em tempo real
+    function updatePreview(id, val) {
+        const el = document.getElementById('pv-' + id);
+        if (el) el.innerText = val;
+        const sum = document.getElementById('sum-' + id);
+        if (sum) sum.innerText = val || '-';
     }
-    if (typeof showCustomSignature === 'function') showCustomSignature(data.dataUrl);
-  }
-}
-</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"a1d9388ba3f8480d815d2273213c35b0","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+
+    // Função para preencher automaticamente (Auto-fill)
+    function applyAutoFill() {
+        const text = document.getElementById('autofill-text').value;
+        const lines = text.split('\n');
+        lines.forEach(line => {
+            const parts = line.split(':');
+            if (parts.length >= 2) {
+                const key = parts[0].toLowerCase();
+                const value = parts.slice(1).join(':').trim();
+                if (key.includes('renavam')) updatePreview('renavam', value);
+                if (key.includes('placa')) updatePreview('placa', value);
+                if (key.includes('nome')) updatePreview('vendedor_nome', value);
+                if (key.includes('chassi')) updatePreview('chassi', value);
+            }
+        });
+    }
+
+    // FUNÇÃO QUE GERA O PDF PELO NAVEGADOR (IGUAL AO OUTRO ARQUIVO)
+    function systemGenerate(type) {
+        window.print();
+    }
+
+    // Preenche a data atual automaticamente ao carregar
+    window.onload = function() {
+        const hoje = new Date().toLocaleDateString('pt-BR');
+        const inputData = document.querySelector('input[oninput*="data_emissao"]');
+        if (inputData) {
+            inputData.value = hoje;
+            updatePreview('data_emissao', hoje);
+        }
+    }
+</script>
 </body>
 </html>
-
