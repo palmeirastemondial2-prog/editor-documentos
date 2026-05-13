@@ -1,0 +1,695 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><base href="/template-assets/aptv/">
+    <meta charset="UTF-8">
+    <title>APTV Digital - Editor</title>
+    <style>
+        @font-face {
+            font-family: 'FreeMonoAPTV';
+            src: url('FreeMonoBold-full.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background: #eef2f7;
+            color: #0f172a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 460px;
+            background: #f8fafc;
+            box-shadow: 2px 0 18px rgba(15, 23, 42, 0.16);
+            padding: 18px 18px 34px;
+            overflow-y: auto;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+        .sidebar-header {
+            background: #243b55;
+            color: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .sidebar-header h2 { margin: 0; font-size: 19px; }
+        .sidebar-header p { margin: 6px 0 0; color: #dbeafe; font-size: 12px; }
+        .dashboard-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .summary-card {
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .summary-card span {
+            display: block;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .summary-card strong {
+            display: block;
+            margin-top: 5px;
+            color: #0f172a;
+            font-size: 14px;
+            white-space: pre;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .section-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .section-tab {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #fff;
+            color: #334155;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 10px 8px;
+            text-align: left;
+        }
+        .section-tab.active {
+            background: #243b55;
+            border-color: #243b55;
+            color: #fff;
+        }
+        .field-panel {
+            display: none;
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+        .field-panel.active { display: block; }
+        .field-panel h3 {
+            margin: 0 0 12px;
+            font-size: 14px;
+        }
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .form-group.full { grid-column: 1 / -1; }
+        .field-subtitle {
+            grid-column: 1 / -1;
+            margin: 4px 0 0;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .form-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-family: 'FreeMonoAPTV', 'FreeMono', 'Liberation Mono', 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            box-sizing: border-box;
+        }
+        .btn-save {
+            display: block;
+            width: 100%;
+            background: #0f766e;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border: none;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+        .version-note { font-size: 10px; color: #64748b; text-align: center; margin-top: 10px; }
+        .preview-area {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            background: #3f3f46;
+            box-sizing: border-box;
+            padding-bottom: 80px;
+        }
+        .document-container {
+            position: relative;
+            width: 794px;
+            height: 1123px;
+            background: #fff;
+            box-shadow: 0 0 50px rgba(0,0,0,0.45);
+        }
+        .pdf-bg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            user-select: none;
+        }
+        .qr-clean-image {
+            position: absolute;
+            z-index: 8;
+            background: #fff;
+            pointer-events: none;
+            image-rendering: pixelated;
+        }
+        .overlay-text {
+            position: absolute;
+            background: transparent;
+            color: #000;
+            font-family: 'FreeMonoAPTV', 'FreeMono', 'Liberation Mono', 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 13.333px;
+            line-height: 1;
+            display: block;
+            padding: 0;
+            pointer-events: none;
+            letter-spacing: 0;
+            white-space: pre;
+            overflow: visible;
+            transform: none;
+        }
+        .edit-preview-watermark {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(210, 0, 0, 0.28);
+            font: 900 96px Arial, Helvetica, sans-serif;
+            letter-spacing: 8px;
+            transform: rotate(-32deg);
+            pointer-events: none;
+        }
+        .qr-preview-mark {
+            position: absolute;
+            z-index: 31;
+            min-width: 66px;
+            padding: 4px 6px 3px;
+            border: 1px solid rgba(185, 28, 28, 0.34);
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.82);
+            color: rgba(185, 28, 28, 0.78);
+            font: 900 12px Arial, Helvetica, sans-serif;
+            letter-spacing: 1.4px;
+            text-align: center;
+            transform: translate(-50%, -50%) rotate(-18deg);
+            box-shadow: 0 1px 2px rgba(0,0,0,.08);
+            pointer-events: none;
+        }
+        @media print {
+            @page { size: 794px 1123px; margin: 0; }
+            html, body {
+                width: 794px;
+                height: 1123px;
+                background: #fff;
+                overflow: hidden;
+            }
+            body { display: block; }
+            .sidebar { display: none; }
+            .preview-area {
+                display: block;
+                width: 794px;
+                height: 1123px;
+                padding: 0;
+                margin: 0;
+                background: none;
+                overflow: hidden;
+            }
+            .document-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 794px;
+                height: 1123px;
+                box-shadow: none;
+                margin: 0;
+                overflow: hidden;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .pdf-bg {
+                width: 794px;
+                height: 1123px;
+            }
+            .overlay-text {
+                font-family: 'FreeMonoAPTV', 'FreeMono', 'Liberation Mono', 'Courier New', monospace;
+                font-size: 13.333px;
+                line-height: 1;
+                font-weight: 700;
+                transform: none;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .edit-preview-watermark, .qr-preview-mark {
+                display: none !important;
+            }
+        }
+        @media (max-width: 1100px) {
+            body { height: auto; min-height: 100vh; overflow: auto; flex-direction: column; }
+            .sidebar { width: 100%; max-height: none; }
+            .preview-area { min-height: 100vh; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Dashboard APTV</h2>
+            <p>Edite os campos de preenchimento e acompanhe o documento ao lado.</p>
+        </div>
+        <div class="dashboard-summary">
+            <div class="summary-card"><span>Placa</span><strong id="sum-placa">QEL7630</strong></div>
+            <div class="summary-card"><span>ATPV-e</span><strong id="sum-atpve">222980824001542</strong></div>
+            <div class="summary-card"><span>Vendedor</span><strong id="sum-vendedor_nome">MARCIO FERREIRA BARROS</strong></div>
+        </div>
+        <div class="section-tabs">
+            <button type="button" class="section-tab active" data-panel="veiculo" onclick="showPanel('veiculo')">Veículo</button>
+            <button type="button" class="section-tab" data-panel="documento" onclick="showPanel('documento')">Documento</button>
+            <button type="button" class="section-tab" data-panel="vendedor" onclick="showPanel('vendedor')">Vendedor</button>
+            <button type="button" class="section-tab" data-panel="comprador" onclick="showPanel('comprador')">Comprador</button>
+            <button type="button" class="section-tab" data-panel="auto" onclick="showPanel('auto')">Auto preencher</button>
+        </div>
+        <section class="field-panel" data-panel-content="auto">
+            <h3>Preenchimento automático</h3>
+            <div class="field-grid">
+                <div class="form-group full">
+                    <label>Cole os dados do veículo e proprietário</label>
+                    <textarea id="autofill-text" rows="12" placeholder="RENAVAM: 00000000&#10;PLACA: MXV7632&#10;ANO FABRICA??O: 1999&#10;..."></textarea>
+                </div>
+                <div class="form-group full">
+                    <button type="button" class="btn-save" onclick="applyAutoFill()">PREENCHER AUTOMÁTICO</button>
+                </div>
+            </div>
+        </section>
+        <section class="field-panel active" data-panel-content="veiculo">
+            <h3>Dados do veículo</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">Identificação</div>
+                <div class="form-group"><label>C?digo Renavam</label><input value="01074086071" oninput="updatePreview('renavam', this.value)"><button type="button" class="btn-save" style="padding:8px;font-size:12px;margin:6px 0 0;" onclick="generateRenavam()">GERAR C?DIGO</button></div>
+                <div class="form-group"><label>Placa</label><input value="QEL7630" oninput="updatePreview('placa', this.value)"></div>
+                <div class="form-group"><label>Ano Fabricação</label><input value="2013" oninput="updatePreview('ano_fab', this.value)"></div>
+                <div class="form-group"><label>Ano Modelo</label><input value="2014" oninput="updatePreview('ano_mod', this.value)"></div>
+                <div class="field-subtitle">Características</div>
+                <div class="form-group full"><label>Marca / Modelo / Versão</label><input value="HONDA/CG 150 TITAN EX" oninput="updatePreview('marca', this.value)"></div>
+                <div class="form-group"><label>CAT</label><input value="***" oninput="updatePreview('cat', this.value)"></div>
+                <div class="form-group"><label>Cor Predominante</label><input value="BRANCA" oninput="updatePreview('cor', this.value)"></div>
+                <div class="form-group full"><label>Chassi</label><input value="9C2KC1660ER009751" oninput="updatePreview('chassi', this.value)"></div>
+            </div>
+        </section>
+        <section class="field-panel" data-panel-content="documento">
+            <h3>Dados do documento</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">CRV</div>
+                <div class="form-group"><label>N?mero CRV</label><input value="223497164925" oninput="updatePreview('crv', this.value)"><button type="button" class="btn-save" style="padding:8px;font-size:12px;margin:6px 0 0;" onclick="generateCrv()">GERAR C?DIGO</button></div>
+                <div class="form-group"><label>C?digo Seguran?a CRV</label><input value="13886153015" oninput="updatePreview('seguranca', this.value)"><button type="button" class="btn-save" style="padding:8px;font-size:12px;margin:6px 0 0;" onclick="generateSegurancaCrv()">GERAR C?DIGO</button></div>
+                <div class="field-subtitle">ATPV-e</div>
+                <div class="form-group"><label>N?mero ATPV-e</label><input value="222980824001542" oninput="updatePreview('atpve', this.value)"><button type="button" class="btn-save" style="padding:8px;font-size:12px;margin:6px 0 0;" onclick="generateAtpve()">GERAR C?DIGO</button></div>
+                <div class="form-group"><label>Data Emissão CRV</label><input value="30/04/2026" oninput="updatePreview('data_emissao', this.value)"></div>
+                <div class="form-group"><label>Hodômetro</label><input value="*" oninput="updatePreview('hodometro', this.value)"></div>
+                <div class="form-group">
+                    <label>Segunda via</label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;color:#0f172a;">
+                        <input id="field-segunda_via" type="checkbox" style="width:auto;" onchange="toggleSecondVia(this.checked)">
+                        Mostrar 2ª via
+                    </label>
+                </div>
+            </div>
+        </section>
+        <section class="field-panel" data-panel-content="vendedor">
+            <h3>Identificação do vendedor</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">Dados pessoais</div>
+                <div class="form-group full"><label>Nome</label><input value="MARCIO FERREIRA BARROS" oninput="updatePreview('vendedor_nome', this.value)"></div>
+                <div class="form-group"><label>CPF/CNPJ</label><input value="891.094.572-91" oninput="updatePreview('vendedor_cpf', this.value)"></div>
+                <div class="form-group"><label>E-mail</label><input value="***" oninput="updatePreview('vendedor_email', this.value)"></div>
+                <div class="field-subtitle">Domicílio</div>
+                <div class="form-group"><label>Município</label><input value="CONCORDIA DO PARA" oninput="updatePreview('vendedor_municipio', this.value)"></div>
+                <div class="form-group"><label>UF</label><input value="PA" oninput="updatePreview('vendedor_uf', this.value)"></div>
+            </div>
+        </section>
+        <section class="field-panel" data-panel-content="comprador">
+            <h3>Campos do comprador</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">Dados pessoais</div>
+                <div class="form-group full"><label>Nome</label><input value="" oninput="updatePreview('comprador_nome', this.value)"></div>
+                <div class="form-group"><label>CPF/CNPJ</label><input value="" oninput="updatePreview('comprador_cpf', this.value)"></div>
+                <div class="form-group"><label>E-mail</label><input value="" oninput="updatePreview('comprador_email', this.value)"></div>
+                <div class="field-subtitle">Domicílio</div>
+                <div class="form-group"><label>Município</label><input value="" oninput="updatePreview('comprador_municipio', this.value)"></div>
+                <div class="form-group"><label>UF</label><input value="" oninput="updatePreview('comprador_uf', this.value)"></div>
+                <div class="form-group full"><label>Endereço</label><input value="" oninput="updatePreview('comprador_endereco', this.value)"></div>
+                <div class="field-subtitle">Venda</div>
+                <div class="form-group"><label>Valor declarado</label><input value="" oninput="updatePreview('valor_venda', this.value)"></div>
+                <div class="form-group"><label>Local</label><input value="" oninput="updatePreview('local_venda', this.value)"></div>
+            </div>
+        </section>
+        <button class="btn-save" onclick="window.print()">GERAR PDF / IMPRIMIR</button>
+        <p class="version-note">APTV-e - HTML separado</p>
+    </div>
+
+    <div class="preview-area">
+        <div class="document-container">
+            <img src="aptv-bg.png?v=20260504-3" class="pdf-bg">
+            <img src="qr-clean.png?v=20260506-1" class="qr-clean-image" style="top: 117px; left: 216px; width: 138px; height: 138px;">
+            <div class="edit-preview-watermark">PRÉVIA</div>
+            <div class="qr-preview-mark" style="top: 186px; left: 285px;">PRÉVIA</div>
+            <div id="pv-detran_topo" class="overlay-text" style="top: 67.80px; left: 18.00px; width: 145px; height: 11px; background:#fff !important; color:#000; -webkit-text-fill-color:#000; font-family: Arial, Helvetica, sans-serif; font-weight: 400; font-size: 7px; line-height:11px; transform:none; z-index:20; pointer-events:none;">DETRAN - PA</div>
+            <div id="pv-renavam" class="overlay-text" style="top: 138.52px; left: 19.33px; width: 96px;">01074086071</div>
+            <div id="pv-placa" class="overlay-text" style="top: 185.19px; left: 19.33px; width: 66px;">QEL7630</div>
+            <div id="pv-ano_fab" class="overlay-text" style="top: 233.24px; left: 20.68px; width: 42px;">2013</div>
+            <div id="pv-ano_mod" class="overlay-text" style="top: 233.24px; left: 122.66px; width: 42px;">2014</div>
+            <div id="pv-marca" class="overlay-text" style="top: 289.20px; left: 19.33px; width: 176px;">HONDA/CG 150 TITAN EX</div>
+            <div id="pv-cat" class="overlay-text" style="top: 334.53px; left: 19.33px; width: 32px;">***</div>
+            <div id="pv-cor" class="overlay-text" style="top: 384.82px; left: 19.33px; width: 70px;">BRANCA</div>
+            <div id="pv-chassi" class="overlay-text" style="top: 385.53px; left: 183.40px; width: 150px;">9C2KC1660ER009751</div>
+            <div id="pv-crv" class="overlay-text" style="top: 434.86px; left: 19.33px; width: 112px;">223497164925</div>
+            <div id="pv-seguranca" class="overlay-text" style="top: 434.86px; left: 187.26px; width: 96px;">13886153015</div>
+            <div id="pv-atpve" class="overlay-text" style="top: 488.19px; left: 19.33px; width: 136px;">222980824001542</div>
+            <div id="pv-data_emissao" class="overlay-text" style="top: 488.19px; left: 184.39px; width: 92px;">30/04/2026</div>
+            <div id="pv-hodometro" class="overlay-text" style="top: 532.19px; left: 19.33px; width: 24px;">*</div>
+            <div id="pv-vendedor_nome" class="overlay-text" style="top: 111.85px; left: 426.66px; width: 190px;">MARCIO FERREIRA BARROS</div>
+            <div id="pv-vendedor_cpf" class="overlay-text" style="top: 163.85px; left: 426.66px; width: 112px;">891.094.572-91</div>
+            <div id="pv-vendedor_email" class="overlay-text" style="top: 163.85px; left: 580.00px; width: 60px;">***</div>
+            <div id="pv-vendedor_municipio" class="overlay-text" style="top: 207.85px; left: 426.66px; width: 166px;">CONCORDIA DO PARA</div>
+            <div id="pv-vendedor_uf" class="overlay-text" style="top: 212.57px; left: 719.74px; width: 34px;">PA</div>
+            <div id="pv-comprador_nome" class="overlay-text" style="top: 611.92px; left: 19.33px; width: 240px;"></div>
+            <div id="pv-comprador_cpf" class="overlay-text" style="top: 657.60px; left: 19.33px; width: 130px;"></div>
+            <div id="pv-comprador_email" class="overlay-text" style="top: 657.60px; left: 171.90px; width: 150px;"></div>
+            <div id="pv-comprador_municipio" class="overlay-text" style="top: 706.00px; left: 19.33px; width: 180px;"></div>
+            <div id="pv-comprador_uf" class="overlay-text" style="top: 706.00px; left: 311.76px; width: 34px;"></div>
+            <div id="pv-comprador_endereco" class="overlay-text" style="top: 751.00px; left: 19.33px; width: 300px;"></div>
+            <div id="pv-valor_venda" class="overlay-text" style="top: 267.50px; left: 574.00px; width: 130px;"></div>
+            <div id="pv-local_venda" class="overlay-text" style="top: 371.00px; left: 426.66px; width: 130px;"></div>
+        </div>
+    </div>
+
+    <script>
+        function showPanel(panel) {
+            document.querySelectorAll('.section-tab').forEach((tab) => {
+                tab.classList.toggle('active', tab.dataset.panel === panel);
+            });
+            document.querySelectorAll('.field-panel').forEach((section) => {
+                section.classList.toggle('active', section.dataset.panelContent === panel);
+            });
+        }
+
+        function updatePreview(id, val) {
+            if (id === 'vendedor_uf' || id === 'comprador_uf') {
+                val = normalizeEstado(val);
+            }
+            const previewEl = document.getElementById('pv-' + id);
+            if (previewEl) {
+                previewEl.innerText = val;
+            }
+            if (id === 'vendedor_uf' || id === 'comprador_uf') {
+                updateDetranEstado();
+            }
+            const summaryEl = document.getElementById('sum-' + id);
+            if (summaryEl) {
+                summaryEl.innerText = val || '-';
+            }
+        }
+
+        function normalizeEstado(value) {
+            return String(value || '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase();
+        }
+
+        function updateDetranEstado() {
+            updateDetranTopo();
+        }
+
+        function formatSaoPauloDate(date) {
+            const parts = new Intl.DateTimeFormat('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }).formatToParts(date).reduce((acc, part) => {
+                acc[part.type] = part.value;
+                return acc;
+            }, {});
+            return `${parts.day}/${parts.month}/${parts.year}`;
+        }
+
+        function fillCurrentDates() {
+            const today = formatSaoPauloDate(new Date());
+            setFieldValue('data_emissao', today);
+        }
+
+        function normalizeKey(text) {
+            return String(text || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w/ ]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toUpperCase()
+                .replace(/\bFABRICA\s*O\b/g, 'FABRICACAO')
+                .replace(/\bESP\s*CIE\b/g, 'ESPECIE')
+                .replace(/\bCOMBUST\s*VEL\b/g, 'COMBUSTIVEL')
+                .replace(/\bPOT\s*NCIA\b/g, 'POTENCIA')
+                .replace(/\bLOTA\s*O\b/g, 'LOTACAO')
+                .replace(/\bSITUA\s*O\b/g, 'SITUACAO')
+                .replace(/\bPROCED\s*NCIA\b/g, 'PROCEDENCIA')
+                .replace(/\bN\s*O\b/g, 'NAO');
+        }
+
+        function prepareAutoFillText(text) {
+            return String(text || '')
+                .replace(/\s+(?:⚙️\s*)?REGRAS DE FORMATA[\s\S]*$/i, '')
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<\/?(b|strong|code|span)[^>]*>/gi, '')
+                .replace(/<[^>]+>/g, '');
+        }
+
+        function parseAutoFillText(text) {
+            const data = {};
+            prepareAutoFillText(text).split(/\r?\n/).forEach((line) => {
+                const cleaned = line
+                    .replace(/^[^A-Za-z0-9À-ÿ]+/u, '')
+                    .trim();
+                const match = cleaned.match(/^([^:]+):\s*(.+)$/);
+                if (!match) return;
+                const value = match[2].replace(/^[^A-Za-z0-9À-ÿ]+/u, '').trim();
+                if (!value || value === '↓') return;
+                data[normalizeKey(match[1])] = value;
+            });
+            return data;
+        }
+
+        function getData(data, keys) {
+            for (const key of keys) {
+                const value = data[normalizeKey(key)];
+                if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+            }
+            return '';
+        }
+
+        function setFieldValue(id, value) {
+            if (value === undefined || value === null || String(value).trim() === '') return;
+            const selector = `input[oninput*="updatePreview('${id}'"], textarea[oninput*="updatePreview('${id}'"]`;
+            const input = document.querySelector(selector) || document.getElementById('field-' + id);
+            if (input) input.value = value;
+            updatePreview(id, value);
+        }
+
+        function isNaoInformado(value) {
+            return ['NAO INFORMADO', 'SEM INFORMACAO', 'SEM RESTRICAO'].includes(normalizeKey(value));
+        }
+
+        function setVehicleFieldValue(id, value) {
+            if (isNaoInformado(value)) return;
+            setFieldValue(id, value);
+        }
+
+        function splitCidadeUf(value) {
+            const parts = String(value || '').trim().split(/\s+/);
+            if (parts.length < 2) return { municipio: value, uf: '' };
+            const uf = normalizeEstado(parts.pop());
+            return { municipio: parts.join(' '), uf };
+        }
+
+        function randomDigits(length) {
+            let value = '';
+            for (let i = 0; i < length; i++) value += Math.floor(Math.random() * 10);
+            return value;
+        }
+
+        function generateRenavam() {
+            setFieldValue('renavam', randomDigits(11));
+        }
+
+        function generateCrv() {
+            setFieldValue('crv', randomDigits(12));
+        }
+
+        function generateSegurancaCrv() {
+            setFieldValue('seguranca', randomDigits(11));
+        }
+
+        function generateAtpve() {
+            setFieldValue('atpve', randomDigits(15));
+        }
+
+        function formatRenavam(value) {
+            const digits = String(value || '').replace(/\D/g, '');
+            if (!digits) return value;
+            return digits.padStart(11, '0');
+        }
+
+        function formatCpfCnpj(value) {
+            const digits = String(value || '').replace(/\D/g, '');
+            if (digits.length === 11) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            if (digits.length === 14) return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            return value;
+        }
+
+        function applyAutoFill() {
+            const data = parseAutoFillText(document.getElementById('autofill-text')?.value || '');
+            const marcaModelo = getData(data, ['MARCA/MODELO']) || [getData(data, ['MARCA']), getData(data, ['MODELO'])].filter(Boolean).join('/');
+            const cidadeUf = getData(data, ['CIDADE/UF']) || [getData(data, ['MUNICIPIO REGISTRO', 'MUNICIPIO']), getData(data, ['UF', 'ESTADO'])].filter(Boolean).join(' ');
+
+            setVehicleFieldValue('renavam', formatRenavam(getData(data, ['RENAVAM'])));
+            setVehicleFieldValue('placa', getData(data, ['PLACA']));
+            setVehicleFieldValue('ano_fab', getData(data, ['ANO FABRICACAO', 'ANO DE FABRICACAO', 'ANO - FABRICACAO']));
+            setVehicleFieldValue('ano_mod', getData(data, ['ANO MODELO', 'ANO - MODELO']));
+            setVehicleFieldValue('marca', marcaModelo);
+            setVehicleFieldValue('chassi', getData(data, ['CHASSI']));
+            setVehicleFieldValue('cor', getData(data, ['COR']));
+            setVehicleFieldValue('crv', getData(data, ['NUMERO CRV', 'NUMERO DO CRV', 'CRV', 'EMISSAO ULTIMO CRV']));
+            setVehicleFieldValue('seguranca', getData(data, ['CODIGO SEGURANCA CRV', 'CODIGO DE SEGURANCA CRV', 'COD SEGURANCA CRV']));
+            setVehicleFieldValue('atpve', getData(data, ['NUMERO ATPV E', 'ATPV E']));
+
+            setFieldValue('vendedor_nome', getData(data, ['NOME', 'PROPRIETARIO']));
+            setFieldValue('vendedor_cpf', formatCpfCnpj(getData(data, ['CPF/CNPJ'])));
+            if (cidadeUf) {
+                const city = splitCidadeUf(cidadeUf);
+                setFieldValue('vendedor_municipio', city.municipio);
+                setFieldValue('vendedor_uf', city.uf);
+            }
+        }
+
+        function toggleSecondVia(show) {
+            updateDetranTopo(show);
+        }
+
+        function updateDetranTopo(forceSecondVia) {
+            const vendedorUf = normalizeEstado(document.getElementById('pv-vendedor_uf').innerText || '');
+            const compradorUf = normalizeEstado(document.getElementById('pv-comprador_uf').innerText || '');
+            const uf = vendedorUf || compradorUf || 'PA';
+            const checkbox = document.getElementById('field-segunda_via');
+            const secondVia = forceSecondVia !== undefined ? forceSecondVia : Boolean(checkbox && checkbox.checked);
+            const el = document.getElementById('pv-detran_topo');
+            if (el) el.innerText = `DETRAN - ${uf}${secondVia ? ' - 2? VIA' : ''}`;
+        }
+
+        fillCurrentDates();
+    </script>
+
+<div class="system-action-bar">
+  <strong>Geração pelo sistema</strong>
+  <span>Editor: 1 credito debitado</span>
+  <span>Final: 2 credito(s)</span>
+  <a class="system-back-link" href="/dashboard">Retornar ao painel</a>
+  <button type="button" onclick="systemGenerate('preview')">Ver documento</button>
+  <button type="button" onclick="systemGenerate('final')">Gerar PDF final</button>
+  <span id="system-status"></span>
+</div>
+<style>
+  .system-action-bar { position: fixed; right: 18px; bottom: 18px; z-index: 999999; display: flex; gap: 8px; align-items: center; background: #0f172a; color: #fff; padding: 10px 12px; border-radius: 8px; box-shadow: 0 12px 32px rgba(0,0,0,.25); font: 700 12px Arial,sans-serif; }
+  .system-action-bar .system-back-link { border-radius: 6px; background: #1e293b; color: #fff; padding: 9px 10px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+  .system-action-bar button { border: 0; border-radius: 6px; background: #0f766e; color: #fff; padding: 9px 10px; font-weight: 800; cursor: pointer; }
+  .system-action-bar button:nth-of-type(1) { background: #475569; }
+  @media print { .system-action-bar { display: none !important; } }
+</style>
+<script>
+async function systemGenerate(kind) {
+  const status = document.getElementById('system-status');
+  const doc = document.querySelector('.document-container');
+  if (!doc) { alert('Documento nao encontrado.'); return; }
+  doc.classList.toggle('final-render', kind === 'final');
+  status.textContent = 'Gerando...';
+  try {
+    const response = await fetch('/documents/aptv/' + kind, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CSRF-Token': '3dc0a380bb7d31ebe474a177eead30f302ff05e758790a34c30c85bfccbb8738' },
+      body: JSON.stringify({ documentHtml: doc.outerHTML })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      status.textContent = '';
+      alert(data.error || 'Falha ao gerar PDF.');
+      return;
+    }
+    if (!data.downloadUrl) {
+      status.textContent = '';
+      alert('PDF gerado, mas o link de download nao foi retornado.');
+      return;
+    }
+    status.textContent = 'Abrindo PDF...';
+    window.location.href = data.downloadUrl;
+  } catch (error) {
+    status.textContent = '';
+    alert('Falha ao gerar PDF.');
+  }
+}
+
+window.print = function() {
+  systemGenerate('final');
+};
+
+if ('aptv' === 'upa') {
+  window.importSignaturePng = async function(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('signature', file);
+    const response = await fetch('/documents/aptv/signature-upload', {
+      method: 'POST',
+      headers: { 'CSRF-Token': '3dc0a380bb7d31ebe474a177eead30f302ff05e758790a34c30c85bfccbb8738' },
+      body: form
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      alert(data.error || 'Falha ao importar assinatura.');
+      return;
+    }
+    if (typeof showCustomSignature === 'function') showCustomSignature(data.dataUrl);
+  }
+}
+</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"a1d9388ba3f8480d815d2273213c35b0","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+
