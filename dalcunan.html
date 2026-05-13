@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>CRLV-e</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'FreeMonoCRLV';
+            src: url('FreeMonoBold-full.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 460px;
+            background: #f8fafc;
+            box-shadow: 2px 0 18px rgba(15, 23, 42, 0.16);
+            padding: 18px 18px 34px;
+            overflow-y: auto;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+        .sidebar-header {
+            background: #0f3f74;
+            color: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .sidebar-header h2 { margin: 0; font-size: 19px; }
+        .sidebar-header p { margin: 6px 0 0; color: #dbeafe; font-size: 12px; }
+        .dashboard-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .summary-card {
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .summary-card span {
+            display: block;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: none;
+        }
+        .summary-card strong {
+            display: block;
+            margin-top: 5px;
+            color: #0f172a;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .section-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .section-tab {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #fff;
+            color: #334155;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 10px 8px;
+            text-align: left;
+        }
+        .section-tab.active {
+            background: #0f3f74;
+            border-color: #0f3f74;
+            color: #fff;
+        }
+        .field-panel {
+            display: none;
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+        .field-panel.active { display: block; }
+        .field-panel h3 {
+            margin: 0 0 12px;
+            color: #0f172a;
+            font-size: 14px;
+        }
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        #form-fields { padding-bottom: 18px; }
+        .field-grid .form-group.full { grid-column: 1 / -1; }
+        .field-subtitle {
+            grid-column: 1 / -1;
+            margin: 4px 0 0;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .form-group { margin: 0; }
+        .form-group label { display: block; font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: none;
+            box-sizing: border-box;
+        }
+        .btn-save {
+            display: block;
+            width: 100%;
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+        .btn-save:hover { background: #0056b3; }
+        .btn-small {
+            display: block;
+            width: 100%;
+            background: #007bff;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .btn-small:hover { background: #0056b3; }
+        .version-note { font-size: 10px; color: #64748b; text-align: center; margin-top: 10px; }
+
+        #autofill-toast {
+            display: none;
+            background: #16a34a;
+            color: #fff;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .preview-area {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            background: #444;
+            box-sizing: border-box;
+            padding-bottom: 80px;
+        }
+        .document-container {
+            position: relative;
+            width: 794px;
+            height: 1123px;
+            background: #fff;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+        .pdf-bg {
+            width: 100%;
+            display: block;
+            user-select: none;
+        }
+
+        .overlay-text {
+            position: absolute;
+            background: transparent;
+            color: #000;
+            font-family: 'FreeMonoCRLV', 'FreeMono', 'Liberation Mono', 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 13.333px;
+            line-height: 1;
+            display: block;
+            padding: 0;
+            pointer-events: none;
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: nowrap;
+            overflow: visible;
+            transform: translateY(-2px);
+        }
+        .overlay-text.multiline {
+            white-space: normal;
+            line-height: 1;
+        }
+        .static-pdf-label {
+            position: absolute;
+            z-index: 9;
+            background: #fff;
+            color: #1f1f1f;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 700;
+            font-size: 9.1px;
+            line-height: 1;
+            letter-spacing: 0;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        @media print {
+            @page { size: 794px 1123px; margin: 0; }
+            html, body {
+                width: 794px;
+                height: 1123px;
+                background: #fff;
+                overflow: hidden;
+            }
+            body { display: block; }
+            .sidebar { display: none; }
+            .preview-area {
+                display: block;
+                width: 794px;
+                height: 1123px;
+                padding: 0;
+                margin: 0;
+                background: none;
+                overflow: hidden;
+            }
+            .document-container {
+                width: 794px;
+                height: 1123px;
+                position: absolute;
+                left: 0; top: 0;
+                box-shadow: none;
+                margin: 0;
+                overflow: hidden;
+            }
+            .overlay-text {
+                background: transparent !important;
+                font-family: 'FreeMonoCRLV', 'FreeMono', 'Liberation Mono', 'Courier New', monospace;
+                font-size: 13.333px;
+                line-height: 1;
+                font-weight: 700;
+                letter-spacing: 0;
+                overflow: visible;
+                transform: translateY(-2px);
+            }
+        }
+        @media (max-width: 1100px) {
+            body { height: auto; min-height: 100vh; overflow: auto; flex-direction: column; }
+            .sidebar { width: 100%; max-height: none; }
+            .preview-area { min-height: 100vh; padding: 24px; }
+        }
+        @media (max-width: 560px) {
+            .dashboard-summary, .section-tabs, .field-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Dashboard de Edição</h2>
+            <p>Selecione uma área, edite os campos de preenchimento e acompanhe o documento ao lado.</p>
+        </div>
+        <div class="dashboard-summary">
+            <div class="summary-card">
+                <span>Placa</span>
+                <strong id="sum-placa">JXW7175</strong>
+            </div>
+            <div class="summary-card">
+                <span>Exercício</span>
+                <strong id="sum-exercicio">2021</strong>
+            </div>
+            <div class="summary-card">
+                <span>Proprietário</span>
+                <strong id="sum-nome">JANDEILSON DA SILVA</strong>
+            </div>
+        </div>
+        <div style="background:#fff3cd;border:1.5px solid #f59e0b;border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:800;color:#92400e;text-transform:uppercase;margin-bottom:10px;">⚡ Edição rápida</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label style="display:block;font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:4px;">Exercício</label>
+                    <input type="text" id="quick-exercicio" oninput="syncQuick('exercicio',this.value)" value="2021"
+                        style="width:100%;padding:10px 8px;border:2px solid #f59e0b;border-radius:6px;font-size:18px;font-weight:900;text-align:center;box-sizing:border-box;color:#0f172a;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:4px;">Data de emissão</label>
+                    <input type="text" id="quick-data" oninput="syncQuick('data',this.value)" placeholder="dd/mm/aaaa"
+                        style="width:100%;padding:10px 8px;border:2px solid #f59e0b;border-radius:6px;font-size:15px;font-weight:900;text-align:center;box-sizing:border-box;color:#0f172a;">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-tabs">
+            <button type="button" class="section-tab active" data-panel="identificacao" onclick="showPanel('identificacao')">Identificação</button>
+            <button type="button" class="section-tab" data-panel="veiculo" onclick="showPanel('veiculo')">Veículo</button>
+            <button type="button" class="section-tab" data-panel="tecnico" onclick="showPanel('tecnico')">Técnico</button>
+            <button type="button" class="section-tab" data-panel="proprietario" onclick="showPanel('proprietario')">Proprietário</button>
+            <button type="button" class="section-tab" data-panel="auto" onclick="showPanel('auto')">Auto preencher</button>
+        </div>
+        <div id="form-fields">
+
+        <section class="field-panel" data-panel-content="auto">
+            <h3>Preenchimento automático</h3>
+            <div id="autofill-toast">✅ Campos preenchidos com sucesso!</div>
+            <div class="field-grid">
+                <div class="form-group full">
+                    <label>Cole os dados do veículo e proprietário</label>
+                    <textarea id="autofill-text" rows="14" placeholder="🚗 DADOS DO VEÍCULO 🚗&#10;Placa: NVZ0256&#10;Chassi: 93YLSR6RHBJ618442&#10;Renavam: 00254823904&#10;..."></textarea>
+                </div>
+                <div class="form-group full">
+                    <button type="button" class="btn-save" onclick="applyAutoFill()">PREENCHER AUTOMÁTICO</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="field-panel active" data-panel-content="identificacao">
+            <h3>Identificação do documento</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">Documento</div>
+                <div class="form-group">
+                    <label>Código Renavam</label>
+                    <input type="text" id="field-renavam" oninput="updatePreview('renavam', this.value)" value="00936933747">
+                    <button type="button" class="btn-small" onclick="generateRenavam()">GERAR CÓDIGO</button>
+                </div>
+                <div class="form-group">
+                    <label>PLACA</label>
+                    <input type="text" id="field-placa" oninput="updatePreview('placa', this.value)" value="JXW7175">
+                </div>
+                <div class="form-group">
+                    <label>Exercício</label>
+                    <input type="text" id="field-exercicio" oninput="syncToQuick('exercicio', this.value)" value="2021">
+                </div>
+                <div class="form-group">
+                    <label>Segunda via</label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;color:#0f172a;">
+                        <input id="field-segunda_via" type="checkbox" style="width:auto;" onchange="toggleSecondVia(this.checked)">
+                        Mostrar 2ª via
+                    </label>
+                </div>
+                <div class="field-subtitle">Ano do veículo</div>
+                <div class="form-group">
+                    <label>Ano Fabricação</label>
+                    <input type="text" id="field-ano_fab" oninput="updatePreview('ano_fab', this.value)" value="2007">
+                </div>
+                <div class="form-group">
+                    <label>ANO MODELO</label>
+                    <input type="text" id="field-ano_mod" oninput="updatePreview('ano_mod', this.value)" value="2008">
+                </div>
+                <div class="form-group">
+                    <label>Número do CRV</label>
+                    <input type="text" id="field-crv" oninput="updatePreview('crv', this.value)" value="164123553334">
+                    <button type="button" class="btn-small" onclick="generateNumeroCrv()">GERAR NÚMERO</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="field-panel" data-panel-content="veiculo">
+            <h3>Dados do veículo</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">Identificação</div>
+                <div class="form-group">
+                    <label>Cód. Segurança CLA</label>
+                    <input type="text" id="field-seguranca" oninput="updatePreview('seguranca', this.value)" value="35897514420">
+                    <button type="button" class="btn-small" onclick="generateSegurancaCla()">GERAR CÓDIGO</button>
+                </div>
+                <div class="form-group">
+                    <label>CAT</label>
+                    <input type="text" id="field-cat" oninput="updatePreview('cat', this.value)" value="***">
+                </div>
+                <div class="form-group">
+                    <label>MARCA / MODELO</label>
+                    <input type="text" id="field-marca" oninput="updatePreview('marca', this.value)" value="HONDA/CG 150 SPORT">
+                </div>
+                <div class="form-group">
+                    <label>Espécie / Tipo</label>
+                    <input type="text" id="field-especie" oninput="updatePreview('especie', this.value)" value="PASSAGEIRO MOTOCICLETA">
+                </div>
+                <div class="field-subtitle">Origem e características</div>
+                <div class="form-group">
+                    <label>PLACA ANTERIOR / UF</label>
+                    <input type="text" id="field-placa_ant" oninput="updatePreview('placa_ant', this.value)" value="*******/**">
+                </div>
+                <div class="form-group">
+                    <label>CHASSI</label>
+                    <input type="text" id="field-chassi" oninput="updatePreview('chassi', this.value)" value="9C2KC08608R001962">
+                </div>
+                <div class="form-group">
+                    <label>COR PREDOMINANTE</label>
+                    <input type="text" id="field-cor" oninput="updatePreview('cor', this.value)" value="CINZA">
+                </div>
+                <div class="form-group">
+                    <label>Combustível</label>
+                    <input type="text" id="field-combustivel" oninput="updatePreview('combustivel', this.value)" value="GASOLINA">
+                </div>
+            </div>
+        </section>
+
+        <section class="field-panel" data-panel-content="tecnico">
+            <h3>Dados técnicos</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">Classificação</div>
+                <div class="form-group">
+                    <label>CATEGORIA</label>
+                    <input type="text" id="field-categoria" oninput="updatePreview('categoria', this.value)" value="PARTICULAR">
+                </div>
+                <div class="form-group">
+                    <label>CAPACIDADE</label>
+                    <input type="text" id="field-capacidade" oninput="updatePreview('capacidade', this.value)" value="*.*">
+                </div>
+                <div class="form-group">
+                    <label>Potência / Cilindrada</label>
+                    <input type="text" id="field-potencia" oninput="updatePreview('potencia', this.value)" value="15CV/149">
+                </div>
+                <div class="form-group">
+                    <label>PESO BRUTO TOTAL</label>
+                    <input type="text" id="field-peso_bruto" oninput="updatePreview('peso_bruto', this.value)" value="0.0">
+                </div>
+                <div class="form-group">
+                    <label>MOTOR</label>
+                    <input type="text" id="field-motor" oninput="updatePreview('motor', this.value)" value="KC08E68001962">
+                </div>
+                <div class="form-group">
+                    <label>CMT</label>
+                    <input type="text" id="field-cmt" oninput="updatePreview('cmt', this.value)" value="*.*">
+                </div>
+                <div class="form-group">
+                    <label>EIXOS</label>
+                    <input type="text" id="field-eixos" oninput="updatePreview('eixos', this.value)" value="*">
+                </div>
+                <div class="form-group">
+                    <label>Lotação</label>
+                    <input type="text" id="field-lotacao" oninput="updatePreview('lotacao', this.value)" value="02P">
+                </div>
+                <div class="form-group">
+                    <label>CARROCERIA</label>
+                    <input type="text" id="field-carroceria" oninput="updatePreview('carroceria', this.value)" value="NãO APLICAVEL">
+                </div>
+            </div>
+        </section>
+
+        <section class="field-panel" data-panel-content="proprietario">
+            <h3>Proprietário e emissão</h3>
+            <div class="field-grid">
+                <div class="field-subtitle">Proprietário</div>
+                <div class="form-group">
+                    <label>NOME</label>
+                    <input type="text" id="field-nome" oninput="updatePreview('nome', this.value)" value="JANDEILSON DA SILVA">
+                </div>
+                <div class="form-group">
+                    <label>CPF / CNPJ</label>
+                    <input type="text" id="field-cpf" oninput="updatePreview('cpf', this.value)" value="980.044.682-68">
+                </div>
+                <div class="field-subtitle">Emissão</div>
+                <div class="form-group">
+                    <label>LOCAL</label>
+                    <input type="text" id="field-local" oninput="updatePreview('local', this.value)" value="MANAUS">
+                </div>
+                <div class="form-group">
+                    <label>ESTADO / UF</label>
+                    <input type="text" id="field-estado" oninput="updatePreview('estado', this.value)" value="AM" maxlength="2">
+                </div>
+                <div class="form-group">
+                    <label>DATA</label>
+                    <input type="text" id="field-data" oninput="syncToQuick('data', this.value)" value="29/06/2021">
+                </div>
+                <div class="form-group">
+                    <label>Observações do veículo</label>
+                    <textarea id="field-obs" oninput="updatePreview('obs', this.value)" rows="3">SEM OBSERVAÇÕES</textarea>
+                </div>
+                <div class="form-group full">
+                    <label>Hash DETRAN</label>
+                    <textarea id="field-hash_emissao" oninput="updatePreview('hash_emissao', this.value)" rows="2"></textarea>
+                    <button type="button" class="btn-small" onclick="generateHashEmissao()">GERAR HASH</button>
+                </div>
+            </div>
+        </section>
+
+        <button class="btn-save" onclick="downloadPDF()">⬇ BAIXAR CRLV-e.pdf</button>
+
+<script>
+function downloadPDF() {
+    const placa = document.getElementById('field-placa')?.value || 'CRLV-e';
+    document.title = `CRLV-e_${placa}`;
+    setTimeout(() => { document.title = 'CRLV-e'; }, 3000);
+    window.print();
+}
+</script>
+        <p class="version-note">Versão Profissional v5.1 - Espécie/Tipo Atualizado</p>
+        </div>
+    </div>
+
+    <div class="preview-area">
+        <div class="document-container" id="printable">
+
+            <img src="lore-bg.png" class="pdf-bg" onerror="this.style.display='none'">
+
+            <div id="pv-renavam"   class="overlay-text" style="top:134.58px; left:41.41px; width:90px; height:14px; color:#000; -webkit-text-fill-color:#000; transform:translateY(0);">00936933747</div>
+            <div id="pv-placa"     class="overlay-text" style="top:169.58px; left:41.41px; width:60px; height:14px;">JXW7175</div>
+            <div id="pv-exercicio" class="overlay-text" style="top:169.58px; left:136.95px; width:36px; height:14px;">2021</div>
+            <div id="pv-ano_fab"   class="overlay-text" style="top:204.59px; left:41.41px; width:36px; height:14px;">2007</div>
+            <div id="pv-ano_mod"   class="overlay-text" style="top:204.59px; left:136.95px; width:36px; height:14px;">2008</div>
+            <div id="pv-crv"       class="overlay-text" style="top:247.04px; left:41.41px; width:110px; height:14px;">164123553334</div>
+
+            <div id="pv-seguranca" class="overlay-text" style="top:343.04px; left:41.41px; width:90px; height:14px; color:#000; -webkit-text-fill-color:#000; transform:translateY(0);">35897514420</div>
+            <div id="pv-cat"       class="overlay-text" style="top:343.04px; left:216.41px; width:28px; height:14px;">***</div>
+            <div id="pv-marca"     class="overlay-text" style="top:390.04px; left:41.41px; width:150px; height:14px;">HONDA/CG 150 SPORT</div>
+            <div id="pv-especie"   class="overlay-text" style="top:437.04px; left:41.41px; width:180px; height:14px;">PASSAGEIRO MOTOCICLETA</div>
+            <div id="pv-placa_ant" class="overlay-text" style="top:484.04px; left:41.41px; width:90px; height:14px;">*******/**</div>
+            <div id="pv-chassi"    class="overlay-text" style="top:484.04px; left:174.12px; width:140px; height:14px;">9C2KC08608R001962</div>
+            <div id="pv-cor"       class="overlay-text" style="top:531.05px; left:41.41px; width:44px; height:14px;">CINZA</div>
+            <div id="pv-combustivel" class="overlay-text" style="top:531.05px; left:136.95px; width:70px; height:14px;">GASOLINA</div>
+
+            <div id="pv-categoria"  class="overlay-text" style="top:96.31px; left:421.67px; width:82px; height:14px;">PARTICULAR</div>
+            <div id="pv-capacidade" class="overlay-text" style="top:115.98px; left:679.85px; width:28px; height:14px;">*.*</div>
+            <div id="pv-potencia"   class="overlay-text" style="top:150.98px; left:421.67px; width:70px; height:14px;">15CV/149</div>
+            <div id="pv-peso_bruto" class="overlay-text" style="top:150.98px; left:679.85px; width:28px; height:14px;">0.0</div>
+            <div id="pv-motor"      class="overlay-text" style="top:185.99px; left:421.67px; width:105px; height:14px;">KC08E68001962</div>
+            <div id="pv-cmt"        class="overlay-text" style="top:185.99px; left:604.83px; width:28px; height:14px;">*.*</div>
+            <div id="pv-eixos"      class="overlay-text" style="top:185.99px; left:672.63px; width:14px; height:14px;">*</div>
+            <div id="pv-lotacao"    class="overlay-text" style="top:185.99px; left:718.08px; width:28px; height:14px;">02P</div>
+            <div id="pv-carroceria" class="overlay-text" style="top:220.99px; left:421.67px; width:110px; height:14px;">NãO APLICAVEL</div>
+            <div id="pv-nome"       class="overlay-text" style="top:253.78px; left:421.67px; width:155px; height:14px;">JANDEILSON DA SILVA</div>
+            <div id="pv-cpf"        class="overlay-text" style="top:296.00px; left:617.28px; width:112px; height:14px;">980.044.682-68</div>
+            <div id="pv-local"      class="overlay-text" style="top:343.04px; left:421.67px; width:80px; height:14px;">MANAUS AM</div>
+            <div id="pv-data"       class="overlay-text" style="top:343.04px; left:679.85px; width:82px; height:14px;">29/06/2021</div>
+
+            <div id="pv-hash_emissao" class="overlay-text" style="top:555px; left:41.40px; width:320px; height:10px; font-family:Arial,Helvetica,sans-serif; font-weight:400; font-size:6px; line-height:1;"></div>
+            <div id="pv-obs" class="overlay-text multiline" style="top:589.79px; left:37.41px; width:260px; height:14px;">***</div>
+
+        </div>
+    </div>
+
+    <script>
+        // ─── SYNC QUICK EDIT ──────────────────────────────────────────────────────────
+        function syncQuick(id, value) {
+            const panelInput = document.getElementById('field-' + id);
+            if (panelInput) panelInput.value = value;
+            updatePreview(id, value);
+        }
+
+        function syncToQuick(id, value) {
+            const quickInput = document.getElementById('quick-' + id);
+            if (quickInput) quickInput.value = value;
+            updatePreview(id, value);
+        }
+
+        // ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+        function showPanel(panel) {
+            document.querySelectorAll('.section-tab').forEach(tab =>
+                tab.classList.toggle('active', tab.dataset.panel === panel));
+            document.querySelectorAll('.field-panel').forEach(section =>
+                section.classList.toggle('active', section.dataset.panelContent === panel));
+        }
+
+        function updatePreview(id, val) {
+            if (id === 'local' || id === 'estado') {
+                const local  = document.getElementById('field-local')?.value || '';
+                const estado = normalizeEstado(document.getElementById('field-estado')?.value || '');
+                val = `${local} ${estado}`.trim();
+                id  = 'local';
+            }
+            const previewEl = document.getElementById('pv-' + id);
+            if (previewEl) previewEl.innerText = val;
+            const summaryEl = document.getElementById('sum-' + id);
+            if (summaryEl) summaryEl.innerText = val || '-';
+        }
+
+        function normalizeEstado(value) {
+            return String(value || '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase();
+        }
+
+        function randomHex(length) {
+            const chars = '0123456789ABCDEF';
+            let value = '';
+            const cryptoApi = window.crypto || window.msCrypto;
+            if (cryptoApi && cryptoApi.getRandomValues) {
+                const bytes = new Uint8Array(length);
+                cryptoApi.getRandomValues(bytes);
+                for (let i = 0; i < length; i++) value += chars[bytes[i] % 16];
+                return value;
+            }
+            for (let i = 0; i < length; i++) value += chars[Math.floor(Math.random() * 16)];
+            return value;
+        }
+
+        function formatSaoPauloDateTime(date) {
+            const parts = new Intl.DateTimeFormat('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            }).formatToParts(date).reduce((acc, part) => { acc[part.type] = part.value; return acc; }, {});
+            return {
+                date: `${parts.day}/${parts.month}/${parts.year}`,
+                time: `${parts.hour}:${parts.minute}:${parts.second}`
+            };
+        }
+
+        function generateHashEmissao() {
+            const estado = normalizeEstado(document.getElementById('field-estado')?.value || '') || 'AM';
+            const now = formatSaoPauloDateTime(new Date());
+            const line = `Documento emitido por DETRAN ${estado} (${randomHex(40)}) em ${now.date} às ${now.time}.`;
+            setFieldValue('hash_emissao', line);
+        }
+
+        function fillCurrentDates() {
+            const today = formatSaoPauloDateTime(new Date()).date;
+            setFieldValue('data', today);
+        }
+
+        // ─── NORMALIZAÇÃO DE CHAVES ───────────────────────────────────────────────────
+        function normalizeKey(text) {
+            return String(text || '')
+                .replace(/[\u{1F300}-\u{1FFFF}]/gu, '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w\s/]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toUpperCase()
+                .replace(/\bFABRICA\s*O\b/g,    'FABRICACAO')
+                .replace(/\bESP\s*CIE\b/g,       'ESPECIE')
+                .replace(/\bCOMBUST\s*VEL\b/g,   'COMBUSTIVEL')
+                .replace(/\bPOT\s*NCIA\b/g,       'POTENCIA')
+                .replace(/\bLOTA\s*O\b/g,         'LOTACAO')
+                .replace(/\bSITUA\s*O\b/g,        'SITUACAO')
+                .replace(/\bPROCED\s*NCIA\b/g,    'PROCEDENCIA')
+                .replace(/\bN\s*O\b/g,            'NAO')
+                .replace(/\bNUMERO\b/g,           'NUM')
+                .replace(/\bNUM\.\b/g,            'NUM');
+        }
+
+        // ─── PARSER UNIVERSAL ────────────────────────────────────────────────────────
+        function parseAutoFillText(text) {
+            const data = {};
+            const lines = String(text || '').split(/\r?\n/);
+            for (const raw of lines) {
+                const line = raw.replace(/^[\s\-─=*#🚗👤📄⛔ℹ🚢]+/u, '').trim();
+                const colonIdx = line.indexOf(':');
+                if (colonIdx < 1) continue;
+                const rawKey   = line.slice(0, colonIdx).trim();
+                const rawValue = line.slice(colonIdx + 1).trim();
+                if (!rawValue || rawValue === '-' || rawValue === '↓') continue;
+                const key = normalizeKey(rawKey);
+                if (key) data[key] = rawValue;
+            }
+            return data;
+        }
+
+        function getData(data, keys) {
+            for (const key of keys) {
+                const nk = normalizeKey(key);
+                if (data[nk] !== undefined && String(data[nk]).trim() !== '') return data[nk];
+            }
+            return '';
+        }
+
+        // ─── SET FIELD ───────────────────────────────────────────────────────────────
+        function setFieldValue(id, value) {
+            if (value === undefined || value === null || String(value).trim() === '') return;
+            const input = document.getElementById('field-' + id);
+            if (input) input.value = value;
+            const quickInput = document.getElementById('quick-' + id);
+            if (quickInput) quickInput.value = value;
+            updatePreview(id, value);
+        }
+
+        const VALORES_VAZIOS = ['NAO INFORMADO', 'SEM INFORMACAO', 'SEM RESTRICAO',
+                                'INEXISTENTE', 'NAO APLICAVEL', '-', '0'];
+        function isNaoInformado(value) {
+            return VALORES_VAZIOS.includes(normalizeKey(value));
+        }
+        function setVehicleFieldValue(id, value, fallback) {
+            if (isNaoInformado(value)) {
+                if (fallback !== undefined) setFieldValue(id, fallback);
+                return;
+            }
+            setFieldValue(id, value);
+        }
+
+        // ─── FORMATADORES ────────────────────────────────────────────────────────────
+
+        function formatLotacao(value) {
+            const digits = String(value || '').replace(/\D/g, '');
+            if (!digits) return value;
+            return `${digits.padStart(2, '0')}P`;
+        }
+
+        function formatRenavam(value) {
+            const digits = String(value || '').replace(/\D/g, '');
+            if (!digits) return value;
+            return digits.padStart(11, '0');
+        }
+
+        function formatCpfCnpj(value) {
+            const digits = String(value || '').replace(/\D/g, '');
+            if (digits.length === 11) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            if (digits.length === 14) return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            return value;
+        }
+
+        function formatPotenciaCilindrada(potencia, cilindrada) {
+            const slash = String(potencia || '').indexOf('/');
+            if (slash !== -1 && !cilindrada) {
+                const parts = String(potencia).split('/');
+                const c1 = parts[0].replace(/[^\d]/g, '');
+                const c2 = parts[1].replace(/[^\d]/g, '');
+                return c1 && c2 ? `${c1}CV/${c2}` : potencia;
+            }
+            const cv = String(potencia  || '').replace(/[^\d.,]/g, '').replace(',', '.').replace(/\.0+$/, '');
+            const cc = String(cilindrada || '').replace(/[^\d.,]/g, '').replace(',', '.').replace(/\.0+$/, '');
+            if (cv && cc) return `${cv}CV/${cc}`;
+            if (cv)       return `${cv}CV`;
+            if (cc)       return cc;
+            return '';
+        }
+
+        function formatCombustivel(value) {
+    // só retorna exatamente o que veio
+    return value;
+}
+
+        // ─── MAPEAMENTO ESPÉCIE / TIPO ────────────────────────────────────────────────
+        // Regra: a consulta traz o "Tipo" do veículo.
+        // O campo do CRLV exibe "ESPÉCIE TIPO".
+        //
+        //  Tipo na consulta   →  Espécie (CRLV)   Tipo (CRLV)
+        //  AUTOMÓVEL          →  PASSAGEIRO        AUTOMÓVEL
+        //  CAMIONETA          →  MISTO             CAMIONETA
+        //  CAMINHONETE        →  CARGA             CAMINHONETE
+        //  UTILITÁRIO         →  MISTO             UTILITÁRIO
+        //  MOTOCICLETA        →  PASSAGEIRO        MOTOCICLETA
+        //  MOTONETA           →  PASSAGEIRO        MOTONETA
+        //  CICLOMOTOR         →  PASSAGEIRO        CICLOMOTOR
+        //  ÔNIBUS             →  PASSAGEIRO        ÔNIBUS
+        //  MICROÔNIBUS        →  PASSAGEIRO        MICROÔNIBUS
+        //  CAMINHÃO           →  CARGA             CAMINHÃO
+        //  REBOQUE            →  CARGA             REBOQUE
+        //  CAMINHÃO-TRATOR    →  CARGA             CAMINHÃO-TRATOR
+
+        function formatEspecieTipo(value) {
+            if (!value || String(value).trim() === '') return value;
+
+            const n = normalizeKey(value);
+
+            // Mapa: chave normalizada → resultado final no documento
+            const map = [
+                { key: 'CAMINHAO TRATOR', result: 'CARGA CAMINHÃO-TRATOR' },
+                { key: 'MICROONIBUS',     result: 'PASSAGEIRO MICROÔNIBUS' },
+                { key: 'CAMINHONETE',     result: 'CARGA CAMINHONETE'      },
+                { key: 'MOTOCICLETA',     result: 'PASSAGEIRO MOTOCICLETA' },
+                { key: 'CAMIONETA',       result: 'MISTO CAMIONETA'        },
+                { key: 'CICLOMOTOR',      result: 'PASSAGEIRO CICLOMOTOR'  },
+                { key: 'UTILITARIO',      result: 'MISTO UTILITÁRIO'       },
+                { key: 'MOTONETA',        result: 'PASSAGEIRO MOTONETA'    },
+                { key: 'AUTOMOVEL',       result: 'PASSAGEIRO AUTOMÓVEL'   },
+                { key: 'CAMINHAO',        result: 'CARGA CAMINHÃO'         },
+                { key: 'REBOQUE',         result: 'CARGA REBOQUE'          },
+                { key: 'ONIBUS',          result: 'PASSAGEIRO ÔNIBUS'      },
+            ];
+
+            for (const { key, result } of map) {
+                if (n.includes(key)) return result;
+            }
+
+            // Se não reconheceu, devolve o valor original
+            return value;
+        }
+
+        function extractYear(value) {
+            const str = String(value || '');
+            const match = str.match(/\b(19[5-9]\d|20[0-4]\d)\b/);
+            return match ? match[0] : '';
+        }
+
+        function splitCidadeUf(value) {
+            const str = String(value || '').trim();
+            let match = str.match(/^(.+?)\s*[\/\-]\s*([A-Z]{2})$/i);
+            if (match) return { local: match[1].trim(), estado: match[2].toUpperCase() };
+            const parts = str.split(/\s+/);
+            if (parts.length >= 2) {
+                const last = parts[parts.length - 1];
+                if (/^[A-Z]{2}$/i.test(last)) {
+                    return { local: parts.slice(0, -1).join(' '), estado: last.toUpperCase() };
+                }
+            }
+            return { local: str, estado: '' };
+        }
+
+        function formatDate(value) {
+            const str = String(value || '').trim();
+            const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
+            return str;
+        }
+
+        // ─── AUTO PREENCHER ───────────────────────────────────────────────────────────
+        function applyAutoFill() {
+            const raw  = document.getElementById('autofill-text')?.value || '';
+            const data = parseAutoFillText(raw);
+
+            // ── Renavam / CRV / Placa ──
+            setVehicleFieldValue('renavam', formatRenavam(getData(data, ['RENAVAM'])));
+            setVehicleFieldValue('crv',     getData(data, ['NUM CRV', 'NUMERO CRV', 'CRLV N', 'CRV', 'EMISSAO ULTIMO CRV']));
+            setVehicleFieldValue('placa',   getData(data, ['PLACA']));
+
+            // ── Exercício ──
+            const exercicioRaw = getData(data, [
+                'ANO LICENCIAMENTO', 'ANOEXERCICIOLICENCIAMENTOPAGO, 'DATAEMISSAOCRLV'
+            ]);
+            const exercicioAno = extractYear(exercicioRaw) || exercicioRaw;
+            if (exercicioAno) setFieldValue('exercicio', exercicioAno);
+
+            // ── Anos fab/mod ──
+            const anoFabMod = getData(data, ['ANO FAB/MOD', 'ANO FAB MOD']);
+            if (anoFabMod) {
+                const parts = anoFabMod.split(/\s*[\/\-]\s*/);
+                if (parts[0]) setFieldValue('ano_fab', parts[0].trim());
+                if (parts[1]) setFieldValue('ano_mod', parts[1].trim());
+            } else {
+                const fabRaw = getData(data, ['ANO FABRICACAO', 'ANO DE FABRICACAO', 'ANO - FABRICACAO']);
+                const modRaw = getData(data, ['ANO MODELO', 'ANO - MODELO']);
+                if (fabRaw) setFieldValue('ano_fab', extractYear(fabRaw) || fabRaw);
+                if (modRaw) setFieldValue('ano_mod', extractYear(modRaw) || modRaw);
+            }
+
+            // ── Veículo ──
+            const marcaModelo = getData(data, ['MARCA/MODELO', 'MODELO'])
+                || [getData(data, ['MARCA']), getData(data, ['MODELO'])].filter(Boolean).join('/');
+
+            // Tipo do veículo vindo da consulta
+            const tipoConsulta = getData(data, [
+                'TIPO', 'ESPECIE/TIPO', 'ESPECIE', 'TIPO DE VEICULO', 'CATEGORIA'
+            ]);
+
+            // Converte tipo → "ESPÉCIE TIPO" conforme tabela
+            const especieFormatada = formatEspecieTipo(tipoConsulta);
+
+            setVehicleFieldValue('marca',    marcaModelo);
+            setVehicleFieldValue('especie',  especieFormatada);
+            setVehicleFieldValue('chassi',   getData(data, ['CHASSI']));
+            setVehicleFieldValue('cor',      getData(data, ['COR']));
+            setVehicleFieldValue('combustivel', formatCombustivel(getData(data, ['COMBUSTIVEL'])));
+
+            // ── Técnico ──
+            const categoriaConsulta = getData(data, ['CATEGORIA']);
+            const categoriaFmt = normalizeKey(categoriaConsulta);
+            const categoriaTipoVeiculo = ['AUTOMOVEL','MOTOCICLETA','CAMINHONETE','CAMIONETA','UTILITARIO','CAMINHAO'].includes(categoriaFmt);
+            setVehicleFieldValue('categoria', categoriaTipoVeiculo ? 'PARTICULAR' : (categoriaConsulta || 'PARTICULAR'));
+
+            const potenciaRaw   = getData(data, ['POTENCIA', 'POT']);
+            const cilindradaRaw = getData(data, ['CILINDRADA', 'CILINDRADAS', 'CC']);
+            const potenciaFmt   = formatPotenciaCilindrada(potenciaRaw, cilindradaRaw);
+            if (potenciaFmt) setFieldValue('potencia', potenciaFmt);
+
+            setVehicleFieldValue('lotacao',    formatLotacao(getData(data, ['LOTACAO', 'QUANTIDADE DE PASSAGEIROS'])));
+            setVehicleFieldValue('motor',      getData(data, ['MOTOR', 'NUM MOTOR', 'NUMERO DO MOTOR']));
+            setVehicleFieldValue('peso_bruto', getData(data, ['PESO BRUTO TOTAL', 'PBT', 'PESO BRUTO']));
+            setVehicleFieldValue('cmt',        getData(data, ['CMT']));
+            setVehicleFieldValue('eixos',      getData(data, ['EIXOS']));
+            setVehicleFieldValue('carroceria', getData(data, ['CARROCERIA']));
+
+            const placaAnt = getData(data, ['PLACA ANTERIOR', 'PLACA ANT']);
+            if (placaAnt) setVehicleFieldValue('placa_ant', placaAnt, '*******/**');
+
+            // ── Proprietário ──
+            setFieldValue('nome', getData(data, ['NOME', 'PROPRIETARIO']));
+            const docRaw = getData(data, ['CPF/CNPJ', 'CPF', 'CNPJ', 'DOCUMENTO']);
+            if (docRaw) setFieldValue('cpf', formatCpfCnpj(docRaw));
+
+            // ── Local / UF ──
+            const cidadeUfRaw = getData(data, [
+                'CIDADE/UF', 'EMPLACAMENTO', 'MUNICIPIO REGISTRO', 'MUNICIPIO',
+                'LOCAL DE EMISSAO'
+            ]);
+            if (cidadeUfRaw) {
+                const city = splitCidadeUf(cidadeUfRaw);
+                const localInput  = document.getElementById('field-local');
+                const estadoInput = document.getElementById('field-estado');
+                if (localInput)  localInput.value  = city.local;
+                if (estadoInput && city.estado) estadoInput.value = city.estado;
+                updatePreview('local', `${city.local} ${city.estado}`.trim());
+            }
+
+            // ── Data de emissão ──
+            const dataRaw = getData(data, ['DATA']);
+            if (dataRaw) setFieldValue('data', formatDate(dataRaw));
+
+            // ── Toast ──
+            const toast = document.getElementById('autofill-toast');
+            if (toast) {
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            }
+        }
+
+        // ─── GERADORES ────────────────────────────────────────────────────────────────
+
+        function generateRenavam() {
+            setFieldValue('renavam', String(Math.floor(Math.random() * 100000000000)).padStart(11, '0'));
+        }
+        function generateNumeroCrv() {
+            setFieldValue('crv', String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0'));
+        }
+        function generateSegurancaCla() {
+            setFieldValue('seguranca', String(Math.floor(Math.random() * 100000000000)).padStart(11, '0'));
+        }
+
+        function toggleSecondVia(show) { updateDetranTopo(show); }
+
+        function updateDetranTopo(forceSecondVia) {
+            const estado   = normalizeEstado(document.getElementById('field-estado')?.value || '') || 'AM';
+            const checkbox = document.getElementById('field-segunda_via');
+            const secondVia = forceSecondVia !== undefined ? forceSecondVia : Boolean(checkbox && checkbox.checked);
+            const el = document.getElementById('pv-detran_topo');
+            if (el) el.innerText = `DETRAN - ${estado}${secondVia ? ' - 2ª VIA' : ''}`;
+        }
+
+        // ─── INIT ─────────────────────────────────────────────────────────────────────
+        fillCurrentDates();
+        (function initQuickCards() {
+            const dataEl = document.getElementById('field-data');
+            const quickData = document.getElementById('quick-data');
+            if (dataEl && quickData) quickData.value = dataEl.value;
+            const exercicioEl = document.getElementById('field-exercicio');
+            const quickEx = document.getElementById('quick-exercicio');
+            if (exercicioEl && quickEx) quickEx.value = exercicioEl.value;
+        })();
+    </script>
+</body>
+</html>
