@@ -253,23 +253,53 @@
 
         /* Consulta automática por placa */
         .consulta-placa-box {
-            background: #fff;
-            border: 1px solid #dbe3ee;
-            border-radius: 8px;
-            padding: 14px;
-            margin: 0 0 18px;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
-        }
-        .consulta-placa-box h3 {
-            margin: 0 0 5px;
-            color: #0f172a;
-            font-size: 14px;
-        }
-        .consulta-placa-box p {
-            margin: 0 0 10px;
-            color: #64748b;
-            font-size: 11px;
-        }
+    background: #fff;
+    border: 1px solid #dbe3ee;
+    border-radius: 8px;
+    padding: 14px;
+    margin: 0 0 18px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.consulta-placa-box h3 {
+    margin: 0 0 5px;
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.consulta-placa-box p {
+    margin: 0 0 10px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+/* BOTÃO COPIAR DADOS DA CONSULTA */
+.btn-copiar-consulta {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-copiar-consulta:hover {
+    background: #1d4ed8;
+}
+
+.btn-copiar-consulta:active {
+    transform: scale(0.99);
+}
+
+.btn-copiar-consulta:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
         .consulta-placa-row {
             display: flex;
             gap: 8px;
@@ -605,9 +635,19 @@
                 <button type="button" id="btn-consulta-placa" class="btn-save btn-consulta-placa" onclick="consultarPlacaAutomatica()">CONSULTAR</button>
             </div>
             <div id="consulta-placa-status" class="consulta-placa-status"></div>
-            <div id="consulta-resultado" class="consulta-resultado">
-                <pre id="consulta-resultado-texto"></pre>
-            </div>
+
+<div id="consulta-resultado" class="consulta-resultado">
+    <pre id="consulta-resultado-texto"></pre>
+
+    <button
+        type="button"
+        id="btn-copiar-consulta"
+        class="btn-copiar-consulta"
+        onclick="copiarResultadoConsulta()"
+    >
+        📋 COPIAR DADOS
+    </button>
+</div>
         </div>
         </div>
     </div>
@@ -1092,6 +1132,64 @@
         button.textContent = 'CONSULTAR';
     }
 }
+      async function copiarResultadoConsulta() {
+    const texto = document.getElementById('consulta-resultado-texto');
+    const button = document.getElementById('btn-copiar-consulta');
+
+    if (!texto || !texto.textContent.trim()) {
+        return;
+    }
+
+    const textoCopiar = texto.textContent.trim();
+
+    try {
+        button.disabled = true;
+        button.textContent = 'COPIANDO...';
+
+        await navigator.clipboard.writeText(textoCopiar);
+
+        button.textContent = '✅ COPIADO!';
+
+        setTimeout(() => {
+            button.disabled = false;
+            button.textContent = '📋 COPIAR DADOS';
+        }, 1800);
+
+    } catch (error) {
+        console.error('Erro ao copiar consulta:', error);
+
+        try {
+            const area = document.createElement('textarea');
+            area.value = textoCopiar;
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+
+            document.body.appendChild(area);
+            area.focus();
+            area.select();
+
+            document.execCommand('copy');
+            area.remove();
+
+            button.textContent = '✅ COPIADO!';
+
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = '📋 COPIAR DADOS';
+            }, 1800);
+
+        } catch (fallbackError) {
+            console.error('Falha ao copiar:', fallbackError);
+
+            button.disabled = false;
+            button.textContent = '❌ NÃO FOI POSSÍVEL COPIAR';
+
+            setTimeout(() => {
+                button.textContent = '📋 COPIAR DADOS';
+            }, 2500);
+        }
+    }
+} 
         fillCurrentDates();
     </script>
 
