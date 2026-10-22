@@ -627,20 +627,6 @@ async function systemGenerate(kind) {
   }
 }
 
-// Remove a integração com o servidor e usa a impressão nativa do navegador
-window.print = function() {
-  window.print.native();
-};
-window.print.native = Function.prototype.bind.call(window.print, window);
-
-// Opcional: Se quiser garantir que o botão verde também use o comando nativo
-document.querySelectorAll('button').forEach(btn => {
-    if(btn.textContent.includes('GERAR PDF')) {
-        btn.onclick = () => window.print.native();
-    }
-});
-};
-
 if ('aptv' === 'upa') {
   window.importSignaturePng = async function(input) {
     const file = input.files && input.files[0];
