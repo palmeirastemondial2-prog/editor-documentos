@@ -1108,7 +1108,7 @@
             );
         }
 
-        montarResultadoConsulta(data.dados || data)
+        texto.textContent = montarResultadoConsulta(data)
     .replace('⚡ CILINDRADA: NÃO INFORMADO', '⚡ CILINDRADA: 0')
     .replace('💪 POTÊNCIA: NÃO INFORMADO', '💪 POTÊNCIA: 0')
     .replace(/📉 SITUAÇÃO:.*$/m, '📉 SITUAÇÃO: ATIVO')
