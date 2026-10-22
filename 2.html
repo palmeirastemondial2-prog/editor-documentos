@@ -589,13 +589,6 @@
 
         fillCurrentDates();
     </script>
-<style>
-  .system-action-bar { position: fixed; right: 18px; bottom: 18px; z-index: 999999; display: flex; gap: 8px; align-items: center; background: #0f172a; color: #fff; padding: 10px 12px; border-radius: 8px; box-shadow: 0 12px 32px rgba(0,0,0,.25); font: 700 12px Arial,sans-serif; }
-  .system-action-bar .system-back-link { border-radius: 6px; background: #1e293b; color: #fff; padding: 9px 10px; font-weight: 800; text-decoration: none; white-space: nowrap; }
-  .system-action-bar button { border: 0; border-radius: 6px; background: #0f766e; color: #fff; padding: 9px 10px; font-weight: 800; cursor: pointer; }
-  .system-action-bar button:nth-of-type(1) { background: #475569; }
-  @media print { .system-action-bar { display: none !important; } }
-</style>
 <script>
 async function systemGenerate(kind) {
   const status = document.getElementById('system-status');
