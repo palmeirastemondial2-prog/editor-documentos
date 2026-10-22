@@ -1033,47 +1033,69 @@
                 return;
             }
 
-            if (!CONSULTA_API_TOKEN || CONSULTA_API_TOKEN === 'adm157_k8X9mP2vL4qW1yZ5nR7bF3sA0') {
-                status.textContent = '';
-                return;
-            }
-
             button.disabled = true;
-            button.textContent = 'CONSULTANDO...';
-            status.className = 'consulta-placa-status';
-            status.textContent = 'Consultando placa...';
-            resultado.style.display = 'none';
-            texto.textContent = '';
+button.textContent = 'CONSULTANDO...';
+status.className = 'consulta-placa-status';
+status.textContent = 'Consultando placa...';
+resultado.style.display = 'none';
+texto.textContent = '';
 
-            try {
-                const url = `https://infinix-apis.shop/api/v1/multas-placa/${encodeURIComponent(placa)}?token=${encodeURIComponent(CONSULTA_API_TOKEN)}`;
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
+try {
+    const url = `https://lingering-meadow-cb02.pika-b85.workers.dev/?placa=${encodeURIComponent(placa)}`;
 
-                const raw = await response.text();
-                let data = {};
-                try { data = JSON.parse(raw); } catch (_) {}
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json'
+        }
+    });
 
-                if (!response.ok) {
-                    throw new Error(data?.message || data?.mensagem || `Erro HTTP ${response.status}`);
-                }
+    const raw = await response.text();
 
-                if (!data || typeof data !== 'object' || !data.placa) {
-                    throw new Error('A API não retornou dados válidos para essa placa.');
-                }
+    let data = {};
+    try {
+        data = JSON.parse(raw);
+    } catch (_) {}
 
-                texto.textContent = montarResultadoConsulta(data);
-                resultado.style.display = 'block';
-                status.className = 'consulta-placa-status ok';
-                status.textContent = '✓ Consulta realizada com sucesso.';
-            } catch (error) {
-                console.error('Erro na consulta da placa:', error);
-                status.className = 'consulta-placa-status erro';
-                status.textContent = `Erro na consulta: ${error.message || 'não foi possível consultar a API.'}`;
-                resultado.style.display = 'none';
-            } finally {
+    if (!response.ok) {
+        throw new Error(
+            data?.mensagem ||
+            data?.message ||
+            `Erro HTTP ${response.status}`
+        );
+    }
+
+    if (!data || typeof data !== 'object' || !data.placa) {
+        throw new Error(
+            data?.mensagem ||
+            'O Worker não retornou dados válidos para essa placa.'
+        );
+    }
+
+    // O Worker já entrega o texto formatado
+    texto.textContent = data.texto || '';
+
+    resultado.style.display = 'block';
+
+    status.className = 'consulta-placa-status ok';
+    status.textContent = '✓ Consulta realizada com sucesso.';
+
+} catch (error) {
+    console.error('Erro na consulta da placa:', error);
+
+    status.className = 'consulta-placa-status erro';
+
+    status.textContent =
+        `Erro na consulta: ${
+            error.message || 'não foi possível consultar a API.'
+        }`;
+
+    resultado.style.display = 'none';
+
+} finally {
+    button.disabled = false;
+    button.textContent = 'CONSULTAR PLACA';
+} finally {
                 button.disabled = false;
                 button.textContent = 'CONSULTAR';
             }
