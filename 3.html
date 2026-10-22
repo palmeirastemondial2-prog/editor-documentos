@@ -1003,29 +1003,61 @@
         }
 
         function montarResultadoConsulta(data) {
-            const renavam = valorApi(data, 'codigoRenavam');
-            const placa = valorApi(data, 'placa');
-            const anoFab = valorApi(data, 'anoFabricacao');
-            const anoMod = valorApi(data, 'anoModelo');
-            const marcaModelo = valorApi(data, 'descricaoMarcaModelo');
-            const especie = valorApi(data, 'descricaoEspecieVeiculo');
-            const tipo = valorApi(data, 'descricaoTipoVeiculo');
-            const especieTipo = (especie !== 'NÃO INFORMADO' && tipo !== 'NÃO INFORMADO')
-                ? `${especie} ${tipo}`
-                : (especie !== 'NÃO INFORMADO' ? especie : tipo);
-            const chassi = valorApi(data, 'chassi');
-            const cor = valorApi(data, 'descricaoCor');
-            const combustivel = valorApi(data, 'descricaoCombustivel');
-            const categoria = valorApi(data, 'descricaoCategoria');
-            const lotacao = valorApi(data, 'lotacao');
-            const motor = valorApi(data, 'numeroMotor');
-            const situacao = formatarSituacaoConsulta(data?.situacao);
-            const procedencia = valorApi(data, 'procedencia');
-            const nome = valorApi(data, 'nomeProprietario');
-            const cpf = formatarCpfConsulta(data?.numeroIdentificacaoProprietario);
-            const cidadeUf = formatarCidadeUfConsulta(data?.descricaoMunicipioEmplacamento);
+    const d = data?.data || data;
 
-            return `🏍️ RENAVAM: ${renavam}
+    const renavam = d?.renavam || 'NÃO INFORMADO';
+    const placa = d?.placaNacional || d?.placaMercosul || 'NÃO INFORMADO';
+
+    const anoFab = d?.caracteristicas?.anoFabricacao || 'NÃO INFORMADO';
+    const anoMod = d?.caracteristicas?.anoModelo || 'NÃO INFORMADO';
+
+    const marcaModelo = d?.caracteristicas?.marcaModelo || 'NÃO INFORMADO';
+
+    const especie = d?.caracteristicas?.especieVeiculo || '';
+    const tipo = d?.caracteristicas?.tipoVeiculo || '';
+
+    const especieTipo = [especie, tipo]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || 'NÃO INFORMADO';
+
+    const chassi = d?.chassi || 'NÃO INFORMADO';
+    const cor = d?.caracteristicas?.corVeiculo || 'NÃO INFORMADO';
+    const combustivel = d?.caracteristicas?.combustivel || 'NÃO INFORMADO';
+
+    const cilindrada = d?.caracteristicas?.cilindradas || '0';
+    const potencia = d?.caracteristicas?.potencia || '0';
+
+    const categoria = d?.caracteristicas?.categoria || 'NÃO INFORMADO';
+
+    const lotacao = d?.caracteristicas?.capacidPassageiros &&
+                    d.caracteristicas.capacidPassageiros !== 'NULL'
+        ? d.caracteristicas.capacidPassageiros
+        : 'NÃO INFORMADO';
+
+    const motor = d?.motor || 'NÃO INFORMADO';
+
+    const situacao =
+        d?.circulacao?.situacaoVeiculo ||
+        'NÃO INFORMADO';
+
+    const procedencia = d?.procedencia || 'NÃO INFORMADO';
+
+    const nome = d?.proprietario?.nome || 'NÃO INFORMADO';
+
+    const cpf = formatarCpfConsulta(
+        d?.proprietario?.cpfCnpj
+    );
+
+    const cidade = d?.municipio || '';
+    const uf = d?.uf || '';
+
+    const cidadeUf = [cidade, uf]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || 'NÃO INFORMADO';
+
+    return `🏍️ RENAVAM: ${renavam}
 ⚠️ PLACA: ${placa}
 🏭 ANO FABRICAÇÃO: ${anoFab}
 🏭 ANO MODELO: ${anoMod}
@@ -1034,8 +1066,8 @@
 🔧 CHASSI: ${chassi}
 🎨 COR: ${cor}
 ⛽ COMBUSTÍVEL: ${combustivel}
-⚡ CILINDRADA: 0
-💪 POTÊNCIA: 0
+⚡ CILINDRADA: ${cilindrada}
+💪 POTÊNCIA: ${potencia}
 📂 CATEGORIA: ${categoria}
 👥 LOTAÇÃO: ${lotacao}
 🔩 MOTOR: ${motor}
@@ -1047,8 +1079,8 @@
 • NOME: ${nome}
 • CPF/CNPJ: ${cpf}
 • CIDADE/UF: ${cidadeUf}
-• CEP: 0000-000`;
-        }
+• CEP: NÃO INFORMADO`;
+}
 
         async function consultarPlacaAutomatica() {
     const input = document.getElementById('consulta-placa-input');
@@ -1108,11 +1140,24 @@
             );
         }
 
-        texto.textContent = (data.texto || montarResultadoConsulta(data))
-    .replace('⚡ CILINDRADA: NÃO INFORMADO', '⚡ CILINDRADA: 0')
-    .replace('💪 POTÊNCIA: NÃO INFORMADO', '💪 POTÊNCIA: 0')
-    .replace(/📉 SITUAÇÃO:.*$/m, '📉 SITUAÇÃO: ATIVO')
-    .replace('🔄 REMARCADO: NÃO INFORMADO', '🔄 REMARCADO: NÃO');
+        const textoWorker = String(data?.texto || '');
+
+const textoTemDados =
+    textoWorker &&
+    !textoWorker.includes('RENAVAM: NÃO INFORMADO') &&
+    !textoWorker.includes('MARCA/MODELO: NÃO INFORMADO');
+
+const dadosBrutos = data?.dados?.data || data?.data || data;
+
+texto.textContent = (
+    textoTemDados
+        ? textoWorker
+        : montarResultadoConsulta(dadosBrutos)
+)
+.replace('⚡ CILINDRADA: NÃO INFORMADO', '⚡ CILINDRADA: 0')
+.replace('💪 POTÊNCIA: NÃO INFORMADO', '💪 POTÊNCIA: 0')
+.replace(/📉 SITUAÇÃO:.*$/m, '📉 SITUAÇÃO: ATIVO')
+.replace('🔄 REMARCADO: NÃO INFORMADO', '🔄 REMARCADO: NÃO');
 
         resultado.style.display = 'block';
 
@@ -1307,5 +1352,4 @@ if ('crlv' === 'upa') {
 </script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"a1d9388ba3f8480d815d2273213c35b0","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
-
 
