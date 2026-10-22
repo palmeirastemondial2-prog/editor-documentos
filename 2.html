@@ -349,6 +349,7 @@
             </div>
         </section>
         <button class="btn-save" onclick="systemGenerate('final')">GERAR PDF / IMPRIMIR</button>
+<span id="system-status"></span>
         <p class="version-note">APTV-e - HTML separado</p>
     </div>
 
@@ -589,44 +590,57 @@
 
         fillCurrentDates();
     </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
 async function systemGenerate(kind) {
-  const status = document.getElementById('system-status');
+  const status = document.getElementById('system-status') || { textContent: '' };
   const doc = document.querySelector('.document-container');
-  if (!doc) { alert('Documento nao encontrado.'); return; }
-  doc.classList.toggle('final-render', kind === 'final');
-  status.textContent = 'Gerando...';
-  try {
-    const response = await fetch('/documents/aptv/' + kind, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'CSRF-Token': '3dc0a380bb7d31ebe474a177eead30f302ff05e758790a34c30c85bfccbb8738' },
-      body: JSON.stringify({ documentHtml: doc.outerHTML })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      status.textContent = '';
-      alert(data.error || 'Falha ao gerar PDF.');
-      return;
-    }
-   if (!data.downloadUrl) {
-      status.textContent = '';
-      alert('Erro: Link de download não encontrado.');
-      return;
-    }
-    status.textContent = 'Baixando...';
-    const link = document.createElement('a');
-    link.href = data.downloadUrl;
-    link.setAttribute('download', 'CRLV_Digital.pdf');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    status.textContent = 'Concluído';
-  } catch (error) {
-    status.textContent = '';
-    alert('Falha ao gerar PDF.');
-  }
-}
 
+  if (!doc) {
+    alert('Documento não encontrado.');
+    return;
+  }
+
+  status.textContent = 'Gerando PDF...';
+
+  const options = {
+    margin: 0,
+    filename: 'APTV_Digital.pdf',
+    image: {
+      type: 'jpeg',
+      quality: 1.0
+    },
+    html2canvas: {
+      scale: 3,
+      useCORS: true,
+      letterRendering: true
+    },
+    jsPDF: {
+      unit: 'px',
+      format: [794, 1123],
+      orientation: 'portrait'
+    }
+  };
+
+  html2pdf()
+    .set(options)
+    .from(doc)
+    .save()
+    .then(() => {
+      status.textContent = 'Download concluído!';
+
+      setTimeout(() => {
+        status.textContent = '';
+      }, 3000);
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Erro ao processar o PDF no navegador.');
+      status.textContent = '';
+    });
+}
+    
 if ('aptv' === 'upa') {
   window.importSignaturePng = async function(input) {
     const file = input.files && input.files[0];
