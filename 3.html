@@ -921,16 +921,8 @@
         function refreshSecondVia() {
             const checkbox = document.getElementById('field-segunda_via');
             toggleSecondVia(Boolean(checkbox && checkbox.checked));
-        }
-
-
-        // ==========================
-        // CONSULTA AUTOMÁTICA POR PLACA
-        // ==========================
-        // IMPORTANTE: substitua somente o valor abaixo pelo seu token novo.
-        // Não use o token antigo que foi exposto anteriormente.
-        const CONSULTA_API_TOKEN = 'COLE_SEU_TOKEN_AQUI';
-
+        } 
+        
         function formatarPlacaConsulta(input) {
             input.value = String(input.value || '')
                 .toUpperCase()
