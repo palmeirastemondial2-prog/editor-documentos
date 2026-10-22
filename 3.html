@@ -1253,7 +1253,7 @@ async function systemCopyPdf() {
 }
 
 async function systemGenerate(kind) {
-  const status = document.getElementById('system-status');
+  const status = document.getElementById('system-status') || { textContent: '' };
   const doc = document.getElementById('printable'); // Seleciona a área do documento
   
   if (!doc) return;
